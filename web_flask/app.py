@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-   return ''
+   return render_template('index.html')
 
 
 # 업로드 HTML 렌더링
