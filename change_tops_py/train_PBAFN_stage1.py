@@ -39,12 +39,17 @@ device = torch.device(f'cuda:{opt.local_rank}')
 # checkpoint 폴더에서 가장 마지막 checkpoint 파일명 알아내기
 if opt.continue_train:
     checkpoints_list = []
+    checkpoints_optimizer = []
     checkpoint_path = os.path.join(opt.checkpoints_dir, opt.name)
     cp_dirs = os.listdir(checkpoint_path)
     for cp in cp_dirs:
-        checkpoints_list.append(cp)
+        if 'PBAFN_warp' in cp:
+            checkpoints_list.append(cp)
+        elif 'optimizer' in cp:
+            checkpoints_optimizer.append(cp)
     checkpoints_list.sort()
-    latest_checkpoint = checkpoints_list[-2]
+    checkpoints_optimizer.sort()
+    latest_checkpoint = checkpoints_list[-1]
 
   # 지정 epoch 혹은 가장 마지막 체크포인트에서 마지막으로 학습한 epoch 알아내기
     if opt.which_epoch != 'latest':
@@ -81,19 +86,11 @@ warp_model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(warp_model).to(device
 
 ####################################################################
 if opt.isTrain and len(opt.gpu_ids):
-		# continue_train 옵션을 준 경우 저장된 checkpoint에서 불러온 정보를 학습 모델에 적용
+        # continue_train 옵션을 준 경우 저장된 checkpoint에서 불러온 정보를 학습 모델에 적용
     if opt.continue_train:
         print("==================== continue train: YES ====================")
         checkpoint_path = os.path.join(opt.checkpoints_dir, opt.name, latest_checkpoint)
-        checkpoint = torch.load(checkpoint_path, map_location='cuda:{}'.format(opt.local_rank))
-        checkpoint_new = warp_model.state_dict()
-        for param in checkpoint_new:
-            checkpoint_new[param] = checkpoint[param]
-        warp_model.load_state_dict(checkpoint_new)
-
-		# learning rate 불러오는 코드
-        lr_load = torch.load('checkpoints/PBAFN_stage1_lr.pth')
-        loaded_lr = lr_load["learning_rate"]
+        load_checkpoint_parallel(warp_model, checkpoint_path)
     model = torch.nn.parallel.DistributedDataParallel(warp_model, device_ids=[opt.local_rank])
 ####################################################################
 
@@ -103,9 +100,10 @@ criterionVGG = VGGLoss()
 params_warp = [p for p in model.parameters()]
 
 if opt.continue_train:
-	optimizer_warp = torch.optim.Adam(params_warp, lr=loaded_lr, betas=(opt.beta1, 0.999))
+    optimizer_warp = torch.load('checkpoints/PBAFN_stage1/PBAFN_stage1_optimizer_%03d.pth' % (restored_epoch))
+    print("************* optimizer_warp has loaded from 'PBAFN_stage1_optimizer_%03d.pth' *************" % (restored_epoch))
 else:
-	optimizer_warp = torch.optim.Adam(params_warp, lr=opt.lr, betas=(opt.beta1, 0.999))
+    optimizer_warp = torch.optim.Adam(params_warp, lr=opt.lr, betas=(opt.beta1, 0.999))
 
 total_steps = (start_epoch-1) * dataset_size + epoch_iter
 step = 0
@@ -224,13 +222,14 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
 
     ### save model for this epoch
     if epoch % opt.save_epoch_freq == 0:
-      if opt.local_rank == 0:
-        print('saving the model at the end of epoch %d, iters %d' % (epoch, total_steps))        
-        save_checkpoint(model.module, os.path.join(opt.checkpoints_dir, opt.name, 'PBAFN_warp_epoch_%03d.pth' % (epoch+1)))
-        ######################################################
-        print(optimizer_warp.param_groups[0]['lr'])
-        torch.save({"learning_rate" : optimizer_warp.param_groups[0]['lr']}, 'checkpoints/PBAFN_stage1_lr.pth')
-		######################################################
+        if opt.local_rank == 0:
+            print('saving the model at the end of epoch %d, iters %d' % (epoch, total_steps))
+            save_checkpoint(model.module, os.path.join(opt.checkpoints_dir, opt.name, 'PBAFN_warp_epoch_%03d.pth' % (epoch+1)))
+            print('saved learning rate :', optimizer_warp.param_groups[0]['lr'])
+            torch.save(optimizer_warp, 'checkpoints/PBAFN_stage1/PBAFN_stage1_optimizer_%03d.pth' % (epoch+1))
 
     if epoch > opt.niter:
-        model.module.update_learning_rate(optimizer_warp)
+        if opt.continue_train:
+            model.module.continue_update_learning_rate(optimizer_warp)
+        else:
+            model.module.update_learning_rate(optimizer_warp)
