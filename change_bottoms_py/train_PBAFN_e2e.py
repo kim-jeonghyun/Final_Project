@@ -181,7 +181,8 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
         preserve_region = face_img + other_clothes_img
         preserve_mask = torch.cat([face_mask, other_clothes_mask],1)
         concat = torch.cat([preserve_mask.cuda(), densepose, pose.cuda()],1)
-        arm_mask = torch.FloatTensor((data['label'].cpu().numpy()==11).astype(np.float)) + torch.FloatTensor((data['label'].cpu().numpy()==13).astype(np.float))
+        #하의라서 arm_mask이지만 다리 부분의 label로 변경
+        arm_mask = torch.FloatTensor((data['label'].cpu().numpy()==16).astype(np.float)) + torch.FloatTensor((data['label'].cpu().numpy()==17).astype(np.float))
         
         # 하의를 학습하므로 손 대신 발 부위로
         hand_mask = torch.FloatTensor((data['densepose'].cpu().numpy()==5).astype(np.int)) + torch.FloatTensor((data['densepose'].cpu().numpy()==6).astype(np.int))
