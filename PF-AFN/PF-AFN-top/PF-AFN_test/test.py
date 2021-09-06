@@ -68,10 +68,8 @@ for epoch in range(1,2):
         os.makedirs(sub_path,exist_ok=True)
 
         if step % 1 == 0:
-            a = real_image.float().cuda()
-            b= clothes.cuda()
             c = p_tryon
-            combine = torch.cat([a[0],b[0],c[0]], 2).squeeze()
+            combine = torch.cat([c[0]], 2).squeeze()
             cv_img=(combine.permute(1,2,0).detach().cpu().numpy()+1)/2
             rgb=(cv_img*255).astype(np.uint8)
             bgr=cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR)
