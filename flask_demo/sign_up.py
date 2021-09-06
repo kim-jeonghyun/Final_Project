@@ -26,15 +26,12 @@ def get_user(user_id):
 def insert_user(user):
     current_app.database.execute(text("""
         INSERT INTO User (
-            user_id,
             user_key,
             model_image,
             generate
         ) VALUES (
-            :user_id,
             :user_key,
             :model_image,
             :generate
         )
-    """), user)#.lastrowid # 새로 사용자가 생성되면 새로 생성된 사용자의 아이디를 읽어들인다.
-    return user['user_id']
+    """), user).lastrowid # 새로 사용자가 생성되면 새로 생성된 사용자의 아이디를 읽어들인다.

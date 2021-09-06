@@ -17,9 +17,8 @@ s3 = s3_connection()
 def index():
    #new_user = request.json
    new_user = {
-        'user_id'      : 22,
         'user_key'    : 'asdfszsdf2323asdxfxdfd',
-        'model_image'   : '1122zzzsz6789szsxzszszszs',
+        'model_image'   : 'a',
         'generate' : False
     }
    new_user_id = insert_user(new_user)
@@ -50,8 +49,8 @@ def upload_file():
       )
    location = s3.get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
    image_url = f'https://{BUCKET_NAME}.s3.{location}.amazonaws.com/{s3_path}'
-   #return render_template('view.html', image_url = image_url)
-   return 'uploads 디렉토리 -> 파일 업로드 성공!' + image_url
+   return render_template('view.html', image_url = image_url)
+   #return 'uploads 디렉토리 -> 파일 업로드 성공!' + image_url
 
 
 if __name__ == '__main__':
