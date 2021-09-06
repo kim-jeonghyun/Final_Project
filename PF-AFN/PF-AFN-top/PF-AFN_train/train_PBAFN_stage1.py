@@ -1,6 +1,6 @@
 import time
 from options.train_options import TrainOptions
-from models.networks import VGGLoss,save_checkpoint
+from models.networks import VGGLoss,save_checkpoint,load_checkpoint_parallel
 from models.afwm import TVLoss,AFWM
 import torch.nn as nn
 import torch.nn.functional as F
@@ -34,7 +34,38 @@ torch.distributed.init_process_group(
 )
 device = torch.device(f'cuda:{opt.local_rank}')
 
-start_epoch, epoch_iter = 1, 0
+# start_epoch를 이전 checkpoint의 epoch에서 이어서 시작하기 위한 코드 부분
+# checkpoint 폴더에서 가장 마지막 checkpoint 파일명 알아내기
+if opt.continue_train:
+  checkpoints_list = []
+  checkpoints_optimizer = []
+  checkpoint_path = os.path.join(opt.checkpoints_dir, opt.name)
+  cp_dirs = os.listdir(checkpoint_path)
+  for cp in cp_dirs:
+    if 'PBAFN_warp' in cp:
+      checkpoints_list.append(cp)
+    elif 'optimizer' in cp:
+      checkpoints_optimizer.append(cp)
+  checkpoints_list.sort()
+  checkpoints_optimizer.sort()
+  latest_checkpoint = checkpoints_list[-1]
+
+  # 지정 epoch 혹은 가장 마지막 체크포인트에서 마지막으로 학습한 epoch 알아내기
+  if opt.which_epoch != 'latest':
+      for i in checkpoints_list:
+        if opt.which_epoch in i:
+          restored_epoch = int(opt.which_epoch)
+          break
+      else:
+        raise AssertionError("%s epoch is not in checkpoints" % opt.which_epoch)
+  else:
+      restored_epoch = int(latest_checkpoint.split('_')[-1][:3])
+  print("==================== restored epoch :", restored_epoch, "====================")
+
+  start_epoch = restored_epoch
+  epoch_iter = 0
+else:
+  start_epoch, epoch_iter = 1, 0
 
 train_data = CreateDataset(opt)
 train_sampler = DistributedSampler(train_data)
@@ -43,10 +74,15 @@ train_loader = DataLoader(train_data, batch_size=opt.batchSize, shuffle=False,
 dataset_size = len(train_loader)
 print('#training images = %d' % dataset_size)
 
-warp_model = AFWM(opt, 45)
+warp_model = AFWM(opt, 44)
 print(warp_model)
 warp_model.train()
 warp_model.cuda()
+# continue_train 옵션을 준 경우 저장된 checkpoint에서 불러온 정보를 학습 모델에 적용
+if opt.continue_train:
+    print("==================== continue train: YES ====================")
+    checkpoint_path = os.path.join(opt.checkpoints_dir, opt.name, latest_checkpoint)
+    load_checkpoint_parallel(warp_model, checkpoint_path)
 warp_model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(warp_model).to(device)
 
 if opt.isTrain and len(opt.gpu_ids):
@@ -55,8 +91,13 @@ if opt.isTrain and len(opt.gpu_ids):
 criterionL1 = nn.L1Loss()
 criterionVGG = VGGLoss()
 
-params_warp = [p for p in model.parameters()]
-optimizer_warp = torch.optim.Adam(params_warp, lr=opt.lr, betas=(opt.beta1, 0.999))
+# continue_train 옵션을 준 경우 저장된 optimizer 정보를 학습 모델에 적용
+if opt.continue_train:
+    optimizer_warp = torch.load('checkpoints/PBAFN_stage1/PBAFN_stage1_optimizer_%03d.pth' % (restored_epoch))
+    print("************* optimizer_warp has loaded from PBAFN_stage1_optimizer_%03d.pth *************" % (restored_epoch))
+else:
+    params_warp = [p for p in model.parameters()]
+    optimizer_warp = torch.optim.Adam(params_warp, lr=opt.lr, betas=(opt.beta1, 0.999))
 
 total_steps = (start_epoch-1) * dataset_size + epoch_iter
 step = 0
@@ -79,13 +120,14 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
         epoch_iter += 1
         save_fake = True
 
-        t_mask = torch.FloatTensor((data['label'].cpu().numpy()==7).astype(np.float))
-        data['label'] = data['label']*(1-t_mask)+t_mask*4
+        # noise 처리 관련 부분 삭제
+        # t_mask = torch.FloatTensor((data['label'].cpu().numpy()==7).astype(np.float))
+        # data['label'] = data['label']*(1-t_mask)+t_mask*4
         edge = data['edge']
         pre_clothes_edge = torch.FloatTensor((edge.detach().numpy() > 0.5).astype(np.int))
         clothes = data['color']
         clothes = clothes * pre_clothes_edge
-        person_clothes_edge = torch.FloatTensor((data['label'].cpu().numpy()==4).astype(np.int))
+        person_clothes_edge = torch.FloatTensor((data['label'].cpu().numpy()==5).astype(np.int))
         real_image = data['image']
         person_clothes = real_image * person_clothes_edge
         pose = data['pose']
@@ -94,10 +136,17 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
         densepose = torch.cuda.FloatTensor(torch.Size(oneHot_size1)).zero_()
         densepose = densepose.scatter_(1,data['densepose'].data.long().cuda(),1.0)
         densepose_fore = data['densepose']/24.0
-        face_mask = torch.FloatTensor((data['label'].cpu().numpy()==1).astype(np.int)) + torch.FloatTensor((data['label'].cpu().numpy()==12).astype(np.int))
-        other_clothes_mask = torch.FloatTensor((data['label'].cpu().numpy()==5).astype(np.int)) + torch.FloatTensor((data['label'].cpu().numpy()==6).astype(np.int)) + \
-                             torch.FloatTensor((data['label'].cpu().numpy()==8).astype(np.int)) + torch.FloatTensor((data['label'].cpu().numpy()==9).astype(np.int)) + \
-                             torch.FloatTensor((data['label'].cpu().numpy()==10).astype(np.int))
+        face_mask = torch.FloatTensor((data['label'].cpu().numpy()==1).astype(np.int))\
+                     + torch.FloatTensor((data['label'].cpu().numpy()==2).astype(np.int))\
+                     + torch.FloatTensor((data['label'].cpu().numpy()==13).astype(np.int))
+        other_clothes_mask = torch.FloatTensor((data['label'].cpu().numpy()==9).astype(np.int)) + \
+                             torch.FloatTensor((data['label'].cpu().numpy()==14).astype(np.int)) + \
+                             torch.FloatTensor((data['label'].cpu().numpy()==15).astype(np.int)) + \
+                             torch.FloatTensor((data['label'].cpu().numpy()==16).astype(np.int)) + \
+                             torch.FloatTensor((data['label'].cpu().numpy()==17).astype(np.int)) + \
+                             torch.FloatTensor((data['label'].cpu().numpy()==18).astype(np.int)) + \
+                             torch.FloatTensor((data['label'].cpu().numpy()==19).astype(np.int)) + \
+                             torch.FloatTensor((data['label'].cpu().numpy()==20).astype(np.int))
         preserve_mask = torch.cat([face_mask,other_clothes_mask],1)
         concat = torch.cat([preserve_mask.cuda(),densepose,pose.cuda()],1)
 
@@ -176,6 +225,13 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
       if opt.local_rank == 0:
         print('saving the model at the end of epoch %d, iters %d' % (epoch, total_steps))        
         save_checkpoint(model.module, os.path.join(opt.checkpoints_dir, opt.name, 'PBAFN_warp_epoch_%03d.pth' % (epoch+1)))
+        # save optimizer for this epoch
+        print('saved learning rate :', optimizer_warp.param_groups[0]['lr'])
+        torch.save(optimizer_warp, 'checkpoints/PBAFN_stage1/PBAFN_stage1_optimizer_%03d.pth' % (epoch+1))
 
     if epoch > opt.niter:
-        model.module.update_learning_rate(optimizer_warp)
+        # continue_train일 경우 continue_update_learning_rate를 이용해 optimizer 업데이트
+        if opt.continue_train:
+            model.module.continue_update_learning_rate(optimizer_warp)
+        else:
+            model.module.update_learning_rate(optimizer_warp)
