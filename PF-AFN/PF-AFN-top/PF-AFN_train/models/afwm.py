@@ -270,4 +270,24 @@ class AFWM(nn.Module):
         if opt.verbose:
             print('update learning rate: %f -> %f' % (self.old_lr_warp, lr))
         self.old_lr_warp = lr
+    
+    def continue_update_learning_rate(self,optimizer):
+        self.old_lr = optimizer.param_groups[0]['lr']
+        lrd = opt.lr / opt.niter_decay
+        lr = self.old_lr - lrd
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+        if opt.verbose:
+            print('update learning rate: %f -> %f' % (self.old_lr, lr))
+        self.old_lr = lr
+
+    def continue_update_learning_rate_warp(self,optimizer):
+        self.old_lr_warp = optimizer.param_groups[0]['lr']
+        lrd = 0.2 * opt.lr / opt.niter_decay
+        lr = self.old_lr_warp - lrd
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+        if opt.verbose:
+            print('update learning rate: %f -> %f' % (self.old_lr_warp, lr))
+        self.old_lr_warp = lr
 
