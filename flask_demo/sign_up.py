@@ -41,7 +41,7 @@ def insert_user_key(user_key):
         INSERT INTO User_key(
             user_key
         ) VALUES (
-            : user_key
+            :user_key
         )
         """), {
             'user_key': user_key

@@ -39,44 +39,48 @@ def render_file():
 # 파일 업로드 처리
 @app.route('/fileUpload', methods = ['GET', 'POST'])
 def upload_file():
-   if request.method == 'POST':
-      f = request.files['file']
+    if request.method == 'POST':
+        f = request.files['file']
 
 
-      ###########################
-      ##### 이미지 전처리 #######
-      ###########################
+        ###########################
+        ##### 이미지 전처리 #######
+        ###########################
 
-      user_key = get_user_key(32)
-      insert_user_key(user_key)
+        user_key = get_user_key(32)
+        insert_user_key(user_key)
 
-      #저장할 경로 + 파일명
-      top_id, bottom_id = 0, 0
-      s3_path = 'model-image/' + user_key + str(top_id) + str(bottom_id)
-      s3.put_object(
-         Bucket = BUCKET_NAME,
-         Body = f,
-         Key = s3_path,
-         ContentType = f.content_type
-      )
-      location = s3.get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
-      image_url = f'https://{BUCKET_NAME}.s3.{location}.amazonaws.com/{s3_path}'
+        #저장할 경로 + 파일명
+        top_id, bottom_id = 0, 0
+        s3_path = 'model-image/' + user_key + str(top_id) + str(bottom_id)
+        s3.put_object(
+            Bucket = BUCKET_NAME,
+            Body = f,
+            Key = s3_path,
+            ContentType = f.content_type
+            )
+        location = s3.get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
+        image_url = f'https://{BUCKET_NAME}.s3.{location}.amazonaws.com/{s3_path}'
 
-      new_user ={ 
-         'user_key': user_key,
-         'model_image': image_url,
-         'generate': False
-         }
-   return render_template('view.html', image_url = image_url)
-   #return 'uploads 디렉토리 -> 파일 업로드 성공!' + image_url
+        new_user ={ 
+            'user_key': user_key,
+            'model_image': image_url,
+            'generate': False
+            }
+
+        new_user_id = insert_user(new_user)
+
+
+    return render_template('view.html', image_url = image_url)
+    #return 'uploads 디렉토리 -> 파일 업로드 성공!' + image_url
 
 
 
 
 # generate HTML 렌더링
 # 상의 or 하의 item 선택 시 작동
-@app.route('/generate')
-def render_file():
+#@app.route('/generate')
+#def render_file():
    # 1. 해당 
    # 이미지를 클릭할 시 해당 item 의 id 받아오기
 
@@ -88,7 +92,7 @@ def render_file():
    ####################
 
 
-   return render_template('generate.html')
+   #return render_template('generate.html')
 
 
 
