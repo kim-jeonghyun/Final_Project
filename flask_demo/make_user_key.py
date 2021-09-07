@@ -1,7 +1,7 @@
 import string 
 import random 
 
-def get_user_key(key_len, user_list): 
+def get_user_key(key_len): 
     string_lower = string.ascii_lowercase#영어 소문자 
     string_upper = string.ascii_uppercase #영어 대문자 
     string_digits = string.digits #숫자 
@@ -15,11 +15,9 @@ def get_user_key(key_len, user_list):
         else: 
             key = key + random.choice(string_digits) 
 
-    if key in user_list:
-        while key not in user_list:
-            key = get_user_key(key_len, user_list)
-
-    user_list.append(key)
-    return key, user_list
+   # if key in user_list:
+   #     while key not in user_list:
+   #         key = get_user_key(key_len, user_list)
+   return key
     
 
