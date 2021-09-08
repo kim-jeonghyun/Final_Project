@@ -58,8 +58,8 @@ def upload_file():
         #저장할 경로 + 파일명
 
         # 처음 모델 업로드 시, 항상 상의: 0 , 하의: 0
-        top_id, bottom_id = 00, 00
-        s3_path = 'model-image/' + user_key + str(top_id) + str(bottom_id)
+        top_id, bottom_id = '00', '00'
+        s3_path = 'model-image/' +  user_key + top_id + bottom_id
 
         s3.put_object(
             Bucket = BUCKET_NAME,
@@ -96,9 +96,9 @@ def render_file():
     item_url = item_url
     item_num = get_item_num(item_url)
     if check_category(item_url) == 'top':
-        new_model_url = model_url[:-4] + str(item_num) + model_url[-2:]
+        new_model_url = model_url[:-4] + item_num + model_url[-2:]
     else:
-        new_model_url = model_url[:-2] + str(item_num)
+        new_model_url = model_url[:-2] + item_num
     
     
     if check_model(new_model_url):
@@ -114,7 +114,7 @@ def render_file():
         ####################
         # output_image = model.predict()
 
-        s3_path = new_model_url.split('/')[-2] + '/'+ new_model_url.split('/')[-1]
+        s3_path = 'model-image/'+ new_model_url.split('/')[-1]
         s3.put_object(
             Bucket = BUCKET_NAME,
             Body = output_image,
