@@ -1,7 +1,7 @@
-from test import RunModel
+from PFAFN.test import RunModel
 
 def matching_filename(model, clothes):
-    text = open('demo2.txt', 'w')
+    text = open('PFAFN/demo.txt', 'w')
     text.write(model + ' ' + clothes)
 
 def run(baseroot, output_path):
