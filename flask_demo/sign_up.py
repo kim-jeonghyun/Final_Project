@@ -26,74 +26,98 @@ def get_user(user_id):
 def insert_user(user):
     return current_app.database.execute(text("""
         INSERT INTO User (
-            user_key,
-            model_image,
+            model_url,
             generate
         ) VALUES (
-            :user_key,
-            :model_image,
+            :model_url,
             :generate
         )
-    """), user).lastrowid#.inserted_primary_key # 새로 사용자가 생성되면 새로 생성된 사용자의 아이디를 읽어들인다.
-
-def insert_user_key(user_key):
-    current_app.database.execute(text("""
-        INSERT INTO User_key(
-            user_key
-        ) VALUES (
-            :user_key
-        )
-        """), {
-            'user_key': user_key
-            })
+    """), user)#.lastrowid#.inserted_primary_key # 새로 사용자가 생성되면 새로 생성된 사용자의 아이디를 읽어들인다.
 
 
 def insert_item(item):
     current_app.database.execute(text("""
         INSERT INTO Item (
-            item,
+            item_number,
+            item_url,
             category,
             sex
         ) VALUES (
-            :item,
+            :item_number,
+            :item_url,
             :category,
             :sex
         )
         """), item)
 
-def insert_top_item(top_item):
+def insert_mask(mask):
     current_app.database.execute(text("""
         INSERT INTO Item (
-            top_item
+            item_number,
+            mask_url
         ) VALUES (
-            :top_item
+            :item_number,
+            :mask_url,
         )
-        """),   {
-        'top_item' : top_item
-    })
+        """), mask)
 
-def insert_bottom_item(bottom_item):
-    current_app.database.execute(text("""
-        INSERT INTO Bottom (
-            bottom_item
-        ) VALUES (
-            :bottom_item
-        )
-        """),  {
-        'bottom_item' : bottom_item
-    })
 
 def insert_generate(generate):
     return current_app.database.execute(text("""
         INSERT INTO Generate(
-            model_image,
-            top_item,
-            bottom_item,
-            generate_image,
+            model_url,
+            item_number,
+            generate_url,
             ) VALUES (
-                : model_image,
-                : top_item,
-                : bottom_item,
-                : generate_image
+                :model_url,
+                :item_number
+                :generate_url
             )
         """), generate)
+
+
+def check_model(model_url):
+    image = current_app.database.execute(text("""
+        SELECT
+            model_url
+        FROM User
+        WHERE model_url =:model_url
+        """), {
+            'model_url' :model_url
+        }).fetchone()
+
+    return True if image else None
+
+
+def check_category(item_url):
+    item = current_app.database.execute(text("""
+        SELECT
+            category
+        FROM Item
+        WHERE item_url =:item_url
+        """), {
+            'item_url' :item_url
+        }).fetchone()
+    return item['category']
+
+def get_item_num(item_url):
+    item = current_app.database.execute(text("""
+        SELECT
+            item_number
+        FROM Item
+        WHERE item_url =:item_url
+        """), {
+            'item_url' :item_url
+        }).fetchone()
+    return item['item_number']
+
+def get_mask_url(item_num):
+    mask = current_app.database.execute(text("""
+        SELECT
+            mask_url
+        FROM Mask
+        WHERE item_num =:item_num
+        """), {
+            'item_num' :item_num
+        }).fetchone()
+    return mask['mask_url']
