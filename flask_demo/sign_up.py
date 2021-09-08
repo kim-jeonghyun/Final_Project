@@ -52,12 +52,12 @@ def insert_item(item):
 
 def insert_mask(mask):
     current_app.database.execute(text("""
-        INSERT INTO Item (
+        INSERT INTO Mask (
             item_number,
             mask_url
         ) VALUES (
             :item_number,
-            :mask_url,
+            :mask_url
         )
         """), mask)
 
