@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="page-enter" content="blendTrans(duration=0.3)">
+    <title>IBOBA</title>
+    <link href="{{ url_for( 'static', filename= 'css/theme.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for( 'static', filename= 'css/upload_button.css') }}" rel="stylesheet"/>
+
+    <script src="{{ url_for("static", filename='/js/functions.js') }} "></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</head>
+
+<body>
+<main class="main" id="top">
+    <section class="py-0" id="header" style="margin-top: 3em !important;">
+        <div class="container">
+            <div class="row h-50 g-2 py-1">
+                <div class="col-md-4">
+                    <div id="model">
+                        <img src="{{ image_file[0] }}"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 d-flex justify-content-center mt-5 file_button">
+                <label for="file_to_upload">Upload</label>
+                <input type="file" id="file_to_upload" accept="image/*" onchange="upload_image(this);">
+            </div>
+        </div>
+    </section>
+
+    <section id="categoryWomen">
+        <div class="container">
+            <div class="row h-100">
+                <div class="col-12">
+                    <nav>
+                        <div class="nav nav-tabs majestic-tabs mb-4 justify-content-center" id="nav-tab" role="tablist">
+                            <button class="nav-link active" id="female" data-bs-toggle="tab"
+                                    data-bs-target="#nav-women" type="button" role="tab" aria-controls="nav-women"
+                                    aria-selected="true" onclick="click_gender(this)">Women
+                            </button>
+                            <button class="nav-link" id="male" data-bs-toggle="tab" data-bs-target="#nav-men"
+                                    type="button" role="tab" aria-controls="nav-men" aria-selected="false" onclick="click_gender(this)">Men
+                            </button>
+                        </div>
+
+                        <div class="tab-content" id="nav-tabContent">
+                            <div class="tab-pane fade show active" id="nav-women" role="tabpanel"
+                                 aria-labelledby="nav-women-tab">
+                                <ul class="nav nav-pills justify-content-center mb-5" id="pills-tab-women"
+                                    role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="top" data-bs-toggle="pill"
+                                                data-bs-target="#pills-wtshirt" type="button" role="tab"
+                                                aria-controls="pills-wtshirt" aria-selected="true"
+                                                onclick="click_category(this)">TOP
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="bottom" data-bs-toggle="pill"
+                                                data-bs-target="#pills-dresses" type="button" role="tab"
+                                                aria-controls="pills-dresses" aria-selected="false"
+                                                onclick="click_category(this)">BOTTOM
+                                        </button>
+                                    </li>
+                                </ul>
+                                <div id='items'>
+
+                                    <img id="item1" src="{{ image_file[1] }}" height="300" width="240"
+                                         onclick="click_item(this)"/>
+                                    <img id="item2" src="{{ image_file[2] }}" height="300" width="240"
+                                         onclick="click_item(this)"/>
+                                    <img id="item3" src="{{ image_file[3] }}" height="300" width="240"
+                                         onclick="click_item(this)"/>
+                                    <img id="item4" src="{{ image_file[4] }}" height="300" width="240"
+                                         onclick="click_item(this)"/>
+                                    <img id="item5" src="{{ image_file[5] }}" height="300" width="240"
+                                         onclick="click_item(this)"/>
+                                </div>
+
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-0 pt-7">
+
+        <div class="container">
+
+            <div class="border-bottom border-3"></div>
+            <div class="row flex-center my-3">
+                <div class="col-md-6 order-1 order-md-0">
+
+                </div>
+                <div class="col-md-6">
+                    <div class="text-center text-md-end">
+                        <a href="https://github.com/Programmers-B-2-Team">
+                            <span class="me-4" data-feather="github"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+</main>
+<script src="{{ url_for("static", filename='vendors/@popperjs/popper.min.js') }} "></script>
+<script src="{{ url_for("static", filename='vendors/bootstrap/bootstrap.min.js') }} "></script>
+<script src="{{ url_for("static", filename='vendors/is/is.min.js') }} "></script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
+<script src="{{ url_for("static", filename='vendors/feather-icons/feather.min.js') }} "></script>
+<script>feather.replace();</script>
+<script src="{{ url_for("static", filename='/js/theme.js') }} "></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600;700;800;900&amp;display=swap"
+      rel="stylesheet">
+</body>
+</html>
