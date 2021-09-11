@@ -144,7 +144,7 @@ def upload_file():
 
         new_user_id = insert_user(new_user)
 
-    return render_template('view.html', image_url=image_url)
+    return render_template('model_image.html', image_url=image_url)
     # return 'uploads 디렉토리 -> 파일 업로드 성공!' + image_url
 
 

@@ -20,14 +20,22 @@
 <main class="main" id="top">
     <section class="py-0" id="header" style="margin-top: 3em !important;">
         <div class="container">
-            <div class="row h-50 g-2 py-1">
-                <div class="col-md-4">
-                    <div id="model">
-                        <img src="{{ image_file[0] }}"/>
-                    </div>
+            <div class="row h-50 g-2 py-1 ">
+                <div class="nav nav-tabs majestic-tabs mb-4 justify-content-center" id="nav-tab" role="tablist">
+                    <button class="nav-link active" id="w" data-bs-toggle="tab"
+                            data-bs-target="#nav-women" type="button" role="tab" aria-controls="nav-women"
+                            aria-selected="true" onclick="click_gender(this)">Women
+                    </button>
+                    <button class="nav-link" id="m" data-bs-toggle="tab" data-bs-target="#nav-men"
+                            type="button" role="tab" aria-controls="nav-men" aria-selected="false"
+                            onclick="click_gender(this)">Men
+                    </button>
+                        </div>
+                <div class="text-center" id="model">
+                    <img class="img-fluid rounded" src="{{ image_file[0] }}"/>
                 </div>
             </div>
-            <div class="col-12 d-flex justify-content-center mt-5 file_button">
+            <div class="col-12 d-flex justify-content-center mt-3 file_button">
                 <label for="file_to_upload">Upload</label>
                 <input type="file" id="file_to_upload" accept="image/*" onchange="upload_image(this);">
             </div>
@@ -39,15 +47,7 @@
             <div class="row h-100">
                 <div class="col-12">
                     <nav>
-                        <div class="nav nav-tabs majestic-tabs mb-4 justify-content-center" id="nav-tab" role="tablist">
-                            <button class="nav-link active" id="w" data-bs-toggle="tab"
-                                    data-bs-target="#nav-women" type="button" role="tab" aria-controls="nav-women"
-                                    aria-selected="true" onclick="click_gender(this)">Women
-                            </button>
-                            <button class="nav-link" id="m" data-bs-toggle="tab" data-bs-target="#nav-men"
-                                    type="button" role="tab" aria-controls="nav-men" aria-selected="false" onclick="click_gender(this)">Men
-                            </button>
-                        </div>
+
 
                         <div class="tab-content" id="nav-tabContent">
                             <div class="tab-pane fade show active" id="nav-women" role="tabpanel"
@@ -71,7 +71,7 @@
                                 </ul>
                                 <div id='items'>
 
-                                    <img id="item1" src="{{ image_file[1] }}"
+                                    <img class = "img-fluid rounded" id="item1" src="{{ image_file[1] }}"
                                          onclick="click_item(this)"/>
                                     <img id="item2" src="{{ image_file[2] }}"
                                          onclick="click_item(this)"/>

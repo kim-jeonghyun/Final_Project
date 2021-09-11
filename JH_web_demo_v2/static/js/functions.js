@@ -1,4 +1,4 @@
-let gender = 'female'
+let gender = 'w'
 let category = 'top'
 
 change_model = function (gender, category) {
