@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from sqlalchemy import create_engine, text
 from werkzeug.utils import secure_filename
-from sign_up import insert_user, get_user#, insert_user_key
+from sign_up import get_items, get_user, insert_generate, insert_user, get_item_num, check_category, check_model, get_mask_url
 from connection import s3_connection, get_s3_resource
 from s3_config import BUCKET_NAME
 from make_user_key import get_user_key
@@ -22,53 +22,60 @@ path = f'https://{BUCKET_NAME}.s3.{location}.amazonaws.com/'
 
 
 # S3 특정 폴더 내에 있는 파일 리스트를 얻는 함수
-def get_file_list_s3(bucket, gender, category):
+'''def get_file_list_s3(bucket, gender, category):
     my_bucket = s3_resource.Bucket(bucket)
     prefix = gender + "/image/" + category
     file_objs = my_bucket.objects.filter(Prefix=prefix).all()
     file_names = [file_obj.key for file_obj in file_objs]
-    return file_names
+    return file_names'''
 
-
+# 대문 페이지
 @app.route('/')
 def sss():
     return render_template('index.html')
 
+# 테스트용 페이지
+@app.route('/test')
+def test():
+    items= get_items("top","w")[0][2]
+    print(items)
+    return ""
 
 # landing_page에 이미지 보여주기
 @app.route('/select', methods=['GET'])
 def get_photos():
+    default_model = get_user(2)['model_url']
+    default_items= get_items("top","w")
     image_urls = []
-    default_model = get_file_list_s3(bucket=BUCKET_NAME, gender='female', category='model')
-    default_list = get_file_list_s3(bucket=BUCKET_NAME, gender='female', category='top')
-    image_urls.append(path + default_model[0])
-    for img in default_list:
-        image_urls.append(path + img)
+    image_urls.append(default_model)
+    for i in range(len(default_items)):
+        image_urls.append(default_items[i][2])
     return render_template('select.html', image_file=image_urls)
 
 
-# 모델 이미지 바꿔주기
+# female / male 버튼을 누르면 모델 이미지 바꿔서 보여주기
 @app.route('/click_gender', methods=['GET'])
 def get_model_photo():
     parameter_dict = request.args.to_dict()
     gender = parameter_dict['gender']
-    model_image = path+get_file_list_s3(bucket=BUCKET_NAME, gender=gender, category='model')[0]
+    if gender == "w":
+        model_image = get_user(2)['model_url']
+    else:
+        model_image = get_user(1)['model_url']
     # html의 조각만 return해줌
     return render_template('model_image.html', image_name=model_image)
 
 
-# 아이템 이미지 바꿔주기
+# top / bottom 버튼을 누르면 젠더/ 카테고리에 맞는 아이템 이미지 바꿔주기
 @app.route('/click_category', methods=['GET'])
 def get_items_photo():
     parameter_dict = request.args.to_dict()
     category = parameter_dict['category']
     gender = parameter_dict['gender']
-    image_list = get_file_list_s3(bucket=BUCKET_NAME, gender=gender, category=category)
-
+    items_list = get_items(category,gender)
     img_urls = []
-    for image in image_list:
-        img_urls.append(path + image)
-
+    for i in range(len(items_list)):
+        img_urls.append(items_list[i][2])
     # html의 조각만 return해줌
     return render_template('item_images.html', img_urls=img_urls)
 
@@ -116,8 +123,7 @@ def upload_file():
         ###########################
 
         user_key = get_user_key(32)
-        insert_user_key(user_key)
-
+        print(user_key)
         # 저장할 경로 + 파일명
         top_id, bottom_id = 0, 0
         s3_path = 'model-image/' + user_key + str(top_id) + str(bottom_id)
@@ -132,7 +138,7 @@ def upload_file():
 
         new_user = {
             'user_key': user_key,
-            'model_image': image_url,
+            'model_url': image_url,
             'generate': False
         }
 

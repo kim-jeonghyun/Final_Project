@@ -6,8 +6,7 @@ def get_user(user_id):
     user = current_app.database.execute(text("""
         SELECT 
             user_id,
-            user_key,
-            model_image,
+            model_url,
             generate
         FROM User
         WHERE user_id = :user_id
@@ -17,8 +16,7 @@ def get_user(user_id):
 
     return {
         'user_id'      : user['user_id'],
-        'user_key'    : user['user_key'],
-        'model_image'   : user['model_image'],
+        'model_url'   : user['model_url'],
         'generate' : user['generate']
     } if user else None
 
@@ -121,3 +119,14 @@ def get_mask_url(item_num):
             'item_num' :item_num
         }).fetchone()
     return mask['mask_url']
+
+def get_items(category, sex):
+    items = current_app.database.execute(text("""
+        SELECT *
+        FROM Item
+        WHERE category =:category and sex =:sex
+        """), {
+            'category' :category,
+            'sex' :sex
+        }).fetchall()
+    return items
