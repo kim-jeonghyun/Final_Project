@@ -126,7 +126,7 @@ def upload_file():
         print(user_key)
         # 저장할 경로 + 파일명
         top_id, bottom_id = 0, 0
-        s3_path = 'model-image/' + user_key + str(top_id) + str(bottom_id)
+        s3_path = 'model_image/' + user_key + str(top_id) + str(bottom_id)
         s3.put_object(
             Bucket=BUCKET_NAME,
             Body=f,
