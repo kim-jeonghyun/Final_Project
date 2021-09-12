@@ -17,100 +17,78 @@
 </head>
 
 <body>
-<main class="main" id="top">
-    <section class="py-0" id="header" style="margin-top: 3em !important;">
-        <div class="container">
-            <div class="row h-50 g-2 py-1 ">
-                <div class="nav nav-tabs majestic-tabs mb-4 justify-content-center" id="nav-tab" role="tablist">
-                    <button class="nav-link active" id="w" data-bs-toggle="tab"
-                            data-bs-target="#nav-women" type="button" role="tab" aria-controls="nav-women"
-                            aria-selected="true" onclick="click_gender(this)">Women
+<div class="container">
+    <div>
+        <div class="nav nav-tabs majestic-tabs mb-4 justify-content-center" id="nav-tab" role="tablist">
+            <button class="nav-link active" id="w" data-bs-toggle="tab"
+                    data-bs-target="#nav-women" type="button" role="tab" aria-controls="nav-women"
+                    aria-selected="true" onclick="click_gender(this)">Women
+            </button>
+            <button class="nav-link" id="m" data-bs-toggle="tab" data-bs-target="#nav-men"
+                    type="button" role="tab" aria-controls="nav-men" aria-selected="false"
+                    onclick="click_gender(this)">Men
+            </button>
+        </div>
+        <div class="text-center" id="model">
+            <img class="img-fluid rounded" src="{{ image_file[0] }}"/>
+        </div>
+    </div>
+    <div class="col-12 d-flex justify-content-center mt-3 file_button">
+        <label for="file_to_upload">Upload</label>
+        <input type="file" id="file_to_upload" accept="image/*" onchange="upload_image(this);">
+    </div>
+</div>
+<div class="col-12">
+    <div class="tab-content py-2" id="nav-tabContent">
+        <div class="container text-center">
+            <ul class="nav nav-pills justify-content-center mb-3" id="pills-tab-women"
+                role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="top" data-bs-toggle="pill"
+                            data-bs-target="#pills-wtshirt" type="button" role="tab"
+                            aria-controls="pills-wtshirt" aria-selected="true"
+                            onclick="click_category(this)">TOP
                     </button>
-                    <button class="nav-link" id="m" data-bs-toggle="tab" data-bs-target="#nav-men"
-                            type="button" role="tab" aria-controls="nav-men" aria-selected="false"
-                            onclick="click_gender(this)">Men
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="bottom" data-bs-toggle="pill"
+                            data-bs-target="#pills-dresses" type="button" role="tab"
+                            onclick="click_category(this)">BOTTOM
                     </button>
-                        </div>
-                <div class="text-center" id="model">
-                    <img class="img-fluid rounded" src="{{ image_file[0] }}"/>
-                </div>
-            </div>
-            <div class="col-12 d-flex justify-content-center mt-3 file_button">
-                <label for="file_to_upload">Upload</label>
-                <input type="file" id="file_to_upload" accept="image/*" onchange="upload_image(this);">
-            </div>
-        </div>
-    </section>
-
-    <section id="categoryWomen">
-        <div class="container">
-            <div class="row h-100">
-                <div class="col-12">
-                    <nav>
-
-
-                        <div class="tab-content" id="nav-tabContent">
-                            <div class="tab-pane fade show active" id="nav-women" role="tabpanel"
-                                 aria-labelledby="nav-women-tab">
-                                <ul class="nav nav-pills justify-content-center mb-5" id="pills-tab-women"
-                                    role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="top" data-bs-toggle="pill"
-                                                data-bs-target="#pills-wtshirt" type="button" role="tab"
-                                                aria-controls="pills-wtshirt" aria-selected="true"
-                                                onclick="click_category(this)">TOP
-                                        </button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="bottom" data-bs-toggle="pill"
-                                                data-bs-target="#pills-dresses" type="button" role="tab"
-                                                aria-controls="pills-dresses" aria-selected="false"
-                                                onclick="click_category(this)">BOTTOM
-                                        </button>
-                                    </li>
-                                </ul>
-                                <div id='items'>
-
-                                    <img class = "img-fluid rounded" id="item1" src="{{ image_file[1] }}"
-                                         onclick="click_item(this)"/>
-                                    <img id="item2" src="{{ image_file[2] }}"
-                                         onclick="click_item(this)"/>
-                                    <img id="item3" src="{{ image_file[3] }}"
-                                         onclick="click_item(this)"/>
-                                    <img id="item4" src="{{ image_file[4] }}"
-                                         onclick="click_item(this)"/>
-                                    <img id="item5" src="{{ image_file[5] }}"
-                                         onclick="click_item(this)"/>
-                                </div>
-
-                    </nav>
-                </div>
+                </li>
+            </ul>
+            <div id='items'>
+                <img class="col-2 img-fluid rounded" id="item1" src="{{ image_file[1] }}"
+                     onclick="click_item(this)"/>
+                <img class="col-2 img-fluid rounded" id="item2" src="{{ image_file[2] }}"
+                     onclick="click_item(this)"/>
+                <img class="col-2 img-fluid rounded" id="item3" src="{{ image_file[3] }}"
+                     onclick="click_item(this)"/>
+                <img class="col-2 img-fluid rounded" id="item4" src="{{ image_file[4] }}"
+                     onclick="click_item(this)"/>
+                <img class="col-2 img-fluid rounded" id="item5" src="{{ image_file[5] }}"
+                     onclick="click_item(this)"/>
             </div>
         </div>
-    </section>
+    </div>
+</div>
 
-    <section class="py-0 pt-7">
+<div class="container">
 
-        <div class="container">
+    <div class="border-bottom border-3"></div>
+    <div class="row flex-center my-3">
+        <div class="col-md-6 order-1 order-md-0">
 
-            <div class="border-bottom border-3"></div>
-            <div class="row flex-center my-3">
-                <div class="col-md-6 order-1 order-md-0">
-
-                </div>
-                <div class="col-md-6">
-                    <div class="text-center text-md-end">
-                        <a href="https://github.com/Programmers-B-2-Team">
-                            <span class="me-4" data-feather="github"></span>
-                        </a>
-                    </div>
-                </div>
+        </div>
+        <div class="col-md-6">
+            <div class="text-center text-md-end">
+                <a href="https://github.com/Programmers-B-2-Team">
+                    <span class="me-4" data-feather="github"></span>
+                </a>
             </div>
         </div>
-
-    </section>
-
-</main>
+    </div>
+</div>
 <script src="{{ url_for("static", filename='vendors/@popperjs/popper.min.js') }} "></script>
 <script src="{{ url_for("static", filename='vendors/bootstrap/bootstrap.min.js') }} "></script>
 <script src="{{ url_for("static", filename='vendors/is/is.min.js') }} "></script>

@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from sqlalchemy import create_engine, text
 from werkzeug.utils import secure_filename
-from sign_up import insert_generate, insert_user, get_user, insert_user_key
+from sign_up import insert_generate, insert_user, get_user #insert_user_key
 from connection import s3_connection
 from s3_config import BUCKET_NAME
 from make_user_key import get_user_key
@@ -82,7 +82,7 @@ def upload_file():
 
 
 
-
+'''
 # generate HTML 렌더링
 # 상의 or 하의 item 선택 시 작동
 @app.route('/generate')
@@ -139,12 +139,11 @@ def render_file():
         insert_user(user)
 
         return generate_url
-
-
+'''
 
 
 
 
 if __name__ == '__main__':
     #서버 실행
-   app.run(debug = True, port=8000)
+   app.run(debug = True, port=8080)

@@ -87,7 +87,8 @@ def get_generated_photo():
     gender = parameter_dict['gender']
     item_id = parameter_dict['item_id']
     print(gender, item_id)
-    generated_image = path + get_file_list_s3(bucket=BUCKET_NAME, gender=gender, category="model")[int(item_id[-1])]
+    ### 현재의 모델 이미지와 클릭한 아이템 이미지,그 아이템의 마스크 이미지를 가져와서 추론 모델을 돌리고 그 결과 생성된 generated 이미지를 저장 및 보여줌
+    #generated_image =
     # html의 조각만 return해줌
     return render_template('model_image.html', image_name=generated_image)
 
