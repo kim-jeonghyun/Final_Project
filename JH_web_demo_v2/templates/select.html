@@ -13,7 +13,7 @@
 
     <script src="{{ url_for('static', filename='/js/functions.js') }} "></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
+    {{ share.load() }}
 </head>
 
 <body>
@@ -85,7 +85,10 @@
                 <a href="https://github.com/Programmers-B-2-Team">
                     <span class="me-4" data-feather="github"></span>
                 </a>
+                {{ share.create(title='Share with: ', sites='twitter, facebook, linkedin', align='right') }}
+
             </div>
+
         </div>
     </div>
 </div>

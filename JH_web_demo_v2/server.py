@@ -9,8 +9,13 @@ from preprocess import resizing_human
 from create_model import *
 import io
 from inference.inference import inference_image
+import os
+from flask_share import Share
+
 
 app = Flask(__name__)
+share = Share(app)
+
 
 app.config.from_pyfile("config.py")
 # 데이터 베이스와 연동해준다.
@@ -124,31 +129,41 @@ def get_generated_photo():
         bottom_id = item_id[-1]
 
     s3_path = 'model_image/' + user_key + str(top_id) + str(bottom_id)+'.jpg'
-
-    # 추론 함수 돌리기
-    generated_image = inference_image(input_path, f'{path}results/{user_key+str(top_id)+str(bottom_id)}.jpg')
-    generated_image = f'{path}results/{user_key+str(top_id)+str(bottom_id)}.jpg'
-    
-    # s3에 저장하기
-    s3_resource.Bucket(BUCKET_NAME).upload_file(generated_image,s3_path)
-
     location = s3.get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
     
-    # 전처리되어 저장된 새 이미지의 url
+    # 전처리되어 저장될 새 이미지의 url
     image_url = f'https://{BUCKET_NAME}.s3.{location}.amazonaws.com/{s3_path}'
 
-    # SQL에 새롭게 저장
-    new_user = {
-        'user_key': user_key,
-        'model_url': image_url,
-        'generate': True
-    }
+    # 만약에 이미 같은 이름의 이미지가 있으면 그걸 보여주기
+    if check_model(image_url):
+        print("already exist!")
+        return image_url
 
-    new_user_id = insert_user(new_user)
+    else:
+        # 추론 함수 돌리기
+        generated_image = inference_image(category, input_path, f'{path}results/{user_key+str(top_id)+str(bottom_id)}.jpg')
+        generated_image = f'{path}results/{user_key+str(top_id)+str(bottom_id)}.jpg'
+        
+        # s3에 저장하기
+        s3_resource.Bucket(BUCKET_NAME).upload_file(generated_image,s3_path)
+        #로컬에 저장한 건 지우기
+        if os.path.isfile(generated_image):
+            os.remove(generated_image)
 
-    # 모델 이미지 자리에 새로 업로드받아 전처리된 이미지를 보여준다.
-    #return render_template('model_image.html', image_name=image_url)
-    return image_url
+
+
+        # SQL에 새롭게 저장
+        new_user = {
+            'user_key': user_key,
+            'model_url': image_url,
+            'generate': True
+        }
+
+        new_user_id = insert_user(new_user)
+
+        # 모델 이미지 자리에 새로 업로드받아 전처리된 이미지를 보여준다.
+        #return render_template('model_image.html', image_name=image_url)
+        return image_url
 
 
 @app.route('/db')

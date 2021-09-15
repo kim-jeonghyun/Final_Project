@@ -17,8 +17,10 @@ import torch.nn.functional as F
 from data.base_dataset import BaseDataset, get_params, get_transform
 from PIL import Image
 
+
 opt = TestOptions().parse()
 opt.resize_or_crop = 'none'
+
 
 start_epoch, epoch_iter = 1, 0
 
@@ -29,18 +31,27 @@ dataset_size = len(data_loader)
 warp_model = AFWM(opt, 3)
 warp_model.eval()
 warp_model.cuda()
-load_checkpoint(warp_model, opt.warp_checkpoint)
 
 gen_model = ResUnetGenerator(7, 4, 5, ngf=64, norm_layer=nn.BatchNorm2d)
 gen_model.eval()
 gen_model.cuda()
-load_checkpoint(gen_model, opt.gen_checkpoint)
 
 total_steps = (start_epoch-1) * dataset_size + epoch_iter
 step = 0
 step_per_batch = dataset_size / opt.batchSize
 
-def inference_image(input_path, result_path):
+def inference_image(category, input_path, result_path):
+    # category 따라모델 불러오기
+    if category == 'top':
+        warp_checkpoint = './pretrained_models/top_warp_model_1.pth'
+        gen_checkpoint = './pretrained_models/top_gen_model_1.pth'
+    else:
+        warp_checkpoint = './pretrained_models/bottom_warp_model_1.pth'
+        gen_checkpoint = './pretrained_models/bottom_gen_model_1.pth'
+
+    load_checkpoint(warp_model, warp_checkpoint)
+    load_checkpoint(gen_model, gen_checkpoint)
+
 
     I = Image.open(input_path['image']).convert('RGB')
 
@@ -66,7 +77,6 @@ def inference_image(input_path, result_path):
     ##edge is extracted from the clothes image with the built-in function in python
     edge = data['edge']
     edge = edge.unsqueeze(0) 
-    print(edge.shape)
     edge = torch.FloatTensor((edge.detach().numpy() > 0.5).astype(np.int))
     clothes = clothes * edge        
 
@@ -89,7 +99,6 @@ def inference_image(input_path, result_path):
     rgb=(cv_img*255).astype(np.uint8)
     bgr=cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR)
     cv2.imwrite(result_path,bgr) 
-    print(type(bgr))
     return bgr
 
 
