@@ -18,6 +18,7 @@ share = Share(app)
 
 
 app.config.from_pyfile("config.py")
+
 # 데이터 베이스와 연동해준다.
 database = create_engine(app.config['DB_URL'], encoding='utf-8', max_overflow=0)
 app.database = database
@@ -28,11 +29,9 @@ s3_resource = get_s3_resource()
 location = s3.get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
 path = f'https://{BUCKET_NAME}.s3.{location}.amazonaws.com/'
 
-
 # 전처리 모델을 사전에 불러오는 코드
 net = create_model('Unet_human')
 net.eval()
-
 
 # 대문 페이지
 @app.route('/')
@@ -40,16 +39,18 @@ def sss():
     return render_template('index.html')
 
 # 테스트용 페이지
+'''
 @app.route('/test')
 def test():
     items= get_items("top","w")[0][2]
     print(items)
     return ""
+'''
 
 # landing_page에 이미지 보여주기
 @app.route('/select', methods=['GET'])
 def get_photos():
-    default_model = get_user(2)['model_url']
+    default_model = get_user(1)['model_url']
     default_items= get_items("top","w")
     image_urls = []
     image_urls.append(default_model)
@@ -64,9 +65,10 @@ def get_model_photo():
     parameter_dict = request.args.to_dict()
     gender = parameter_dict['gender']
     if gender == "w":
-        model_image = get_user(2)['model_url']
-    else:
         model_image = get_user(1)['model_url']
+    else:
+        model_image = get_user(2)['model_url']
+
     # html의 조각만 return해줌
     return render_template('model_image.html', image_name=model_image)
 
@@ -78,6 +80,7 @@ def get_items_photo():
     category = parameter_dict['category']
     gender = parameter_dict['gender']
     items_list = get_items(category,gender)
+    print(items_list)
     img_urls = []
     for i in range(len(items_list)):
         img_urls.append(items_list[i][2])
@@ -89,9 +92,12 @@ def get_items_photo():
 def get_paired_photo():
     parameter_dict = request.args.to_dict()
     gender = parameter_dict['gender']
+    print(gender)
     category = parameter_dict['category']
-    item_id = parameter_dict['item_id']
-    img_path = "/img/model/"+gender+category+item_id+".jpg"
+    top_id = parameter_dict['top_id']
+    bottom_id = parameter_dict['bottom_id']
+
+    img_path = "img/model/"+gender+top_id+bottom_id+".jpg"
     return render_template('model_image_static.html', image_name=img_path)
 
 
@@ -104,31 +110,42 @@ def get_generated_photo():
     category = parameter_dict['category']
     item_id = parameter_dict['item_id']
     s3_url =parameter_dict['s3_url']    
-    
+    print()
+    print('s3_url', s3_url)
+    print('item_id', item_id)
+    print()
+
+
     # 추론 함수에 들어갈 input image들 지정해주기
     key = s3_url.replace("https://project-dev-b2.s3.ap-northeast-2.amazonaws.com/","")
     name = key.replace("model_image/","")
     
     #user_key, top_id, bottom_id 받아오기
-    top_id, bottom_id = name.split('.')[0][-2], name.split('.')[0][-1]
+    top_id, bottom_id = name.split('.')[0][-2], name.split('.')[0][-1] 
+    if category == 'top':
+        top_id = item_id[-1]
+    else:
+        bottom_id = item_id[-1]
+    print()
+    print('top_id', top_id)
+    print('bottom_id', bottom_id)
+    print()
     user_key = name.split('.')[0][:-2]
-    print("user_key, top_id, bottom_id", user_key, top_id, bottom_id)
     path='/home/jh/Final_Project/JH_web_demo_v2/inference/dataset/'
-    s3_resource.Bucket(BUCKET_NAME).download_file(key, f'{path}test_img/{name}.jpg')
+    s3_resource.Bucket(BUCKET_NAME).download_file(key, f'{path}test_img/{name}')
 
-    image_path = f'{path}test_img/{name}.jpg'
-    clothes_path = f'{path}test_clothes/{gender+category+item_id}.jpeg'
-    edge_path = f'{path}test_edge/{gender+category+item_id}.jpeg'
+    image_path = f'{path}test_img/{name}'
+    print()
+    print('image_path', image_path)
+    print()
+    clothes_path = f'{path}test_clothes/{gender+category+item_id}.jpg'
+    edge_path = f'{path}test_edge/{gender+category+item_id}.jpg'
     input_path = { 'image': image_path,'clothes': clothes_path ,'edge': edge_path}
 
-
-    # 저장할 storage 경로 + 파일명 만들기
-    if category == 'top':
-        top_id=item_id[-1]
-    elif category =='bottom':
-        bottom_id = item_id[-1]
-
     s3_path = 'model_image/' + user_key + str(top_id) + str(bottom_id)+'.jpg'
+    print()
+    print('s3_path', s3_path)
+    print()
     location = s3.get_bucket_location(Bucket=BUCKET_NAME)['LocationConstraint']
     
     # 전처리되어 저장될 새 이미지의 url
@@ -191,18 +208,22 @@ def upload_file():
     if request.method == 'POST':
         # 업로드 받은 파일
         file = request.files['file']
+        
+        
         # 전처리 함수를 통과
         resized_img = resizing_human(file, model=net, temp_size=384)
         buf = io.BytesIO()
         resized_img.save(buf, format='JPEG')
         byte_im = buf.getvalue()
+        
 
         # 새 유저 키 생성
         user_key = get_user_key(32)
         print(user_key)
 
+        top_id, bottom_id = 0,0
         # 저장할 storage 경로 + 파일명
-        top_id, bottom_id = 0, 0
+        
         s3_path = 'model_image/' + user_key + str(top_id) + str(bottom_id)+'.jpg'
         s3.put_object(
             Bucket=BUCKET_NAME,
