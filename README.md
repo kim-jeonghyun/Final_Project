@@ -12,6 +12,6 @@ AIhub 데이터의 재가공과 관련한 보다 자세한 설명 및 코드는 
 
 ## 필요 패키지 설치
 
-'''
+₩₩₩
 pip install -r requirements.txt
-'''
+₩₩₩
