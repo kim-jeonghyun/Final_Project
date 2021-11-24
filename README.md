@@ -1,5 +1,7 @@
 # Final_Project IBOBA : AI 패션 코디네이트 플랫폼
 
+<img width="1005" alt="스크린샷 2021-11-24 오후 10 03 20" src="https://user-images.githubusercontent.com/75971409/143243739-98eab911-0061-42bb-80ad-1e9037781175.png">
+
 
 본 서비스는 [KDT 프로그래머스 인공지능 데브코스 2기](https://programmers.co.kr/learn/courses/11612) 과정의 일부로 진행된 팀 프로젝트의 결과물입니다.
 웹 서비스는 여기서 확인할 수 있습니다. (향후 업데이트 예정)
